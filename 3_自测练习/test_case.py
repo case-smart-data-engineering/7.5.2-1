@@ -79,5 +79,4 @@ def test_solution():
         gnn.train()
 
     test(gnn, gen, args.n_classes)
-
     print ('total num of params:', count_parameters(gnn))
