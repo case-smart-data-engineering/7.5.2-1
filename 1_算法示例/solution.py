@@ -17,7 +17,6 @@ from torch import optim
 import torch.nn.functional as F
 from losses import compute_loss_multiclass, compute_accuracy_multiclass
 
-
 parser = argparse.ArgumentParser()
 
 ###############################################################################
