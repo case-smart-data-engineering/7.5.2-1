@@ -23,7 +23,6 @@ parser = argparse.ArgumentParser()
 #                             General Settings                                #
 ###############################################################################
 
-
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
                     default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
