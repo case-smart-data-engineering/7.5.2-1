@@ -25,25 +25,25 @@ parser = argparse.ArgumentParser()
 ###############################################################################
 
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
-                    default=int(6000))
+                    default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
-                    default=int(1000))
+                    default=1)
 parser.add_argument('--edge_density', nargs='?', const=1, type=float,
                     default=0.2)
 parser.add_argument('--p_SBM', nargs='?', const=1, type=float,
-                    default=0.8)
+                    default=0.0)
 parser.add_argument('--q_SBM', nargs='?', const=1, type=float,
-                    default=0.2)
+                    default=0.045)
 parser.add_argument('--random_noise', action='store_true')
 parser.add_argument('--noise', nargs='?', const=1, type=float, default=0.03)
 parser.add_argument('--noise_model', nargs='?', const=1, type=int, default=2)
 parser.add_argument('--generative_model', nargs='?', const=1, type=str,
-                    default='ErdosRenyi')
+                    default='SBM_multiclass')
 parser.add_argument('--batch_size', nargs='?', const=1, type=int, default=1)
 parser.add_argument('--mode', nargs='?', const=1, type=str, default='train')
 parser.add_argument('--path_gnn', nargs='?', const=1, type=str, default='')
 parser.add_argument('--filename_existing_gnn', nargs='?', const=1, type=str, default='')
-parser.add_argument('--print_freq', nargs='?', const=1, type=int, default=100)
+parser.add_argument('--print_freq', nargs='?', const=1, type=int, default=1)
 parser.add_argument('--test_freq', nargs='?', const=1, type=int, default=500)
 parser.add_argument('--save_freq', nargs='?', const=1, type=int, default=2000)
 parser.add_argument('--clip_grad_norm', nargs='?', const=1, type=float,
@@ -56,15 +56,15 @@ parser.set_defaults(eval_vs_train=False)
 ###############################################################################
 
 parser.add_argument('--num_features', nargs='?', const=1, type=int,
-                    default=20)
+                    default=10)
 parser.add_argument('--num_layers', nargs='?', const=1, type=int,
-                    default=20)
+                    default=1)
 parser.add_argument('--n_classes', nargs='?', const=1, type=int,
                     default=2)
-parser.add_argument('--J', nargs='?', const=1, type=int, default=4)
-parser.add_argument('--N_train', nargs='?', const=1, type=int, default=50)
-parser.add_argument('--N_test', nargs='?', const=1, type=int, default=50)
-parser.add_argument('--lr', nargs='?', const=1, type=float, default=1e-3)
+parser.add_argument('--J', nargs='?', const=1, type=int, default=2)
+parser.add_argument('--N_train', nargs='?', const=1, type=int, default=10)
+parser.add_argument('--N_test', nargs='?', const=1, type=int, default=10)
+parser.add_argument('--lr', nargs='?', const=1, type=float, default=0.004)
 
 args = parser.parse_args()
 
@@ -187,7 +187,83 @@ def test(gnn, gen, n_classes, iters=args.num_examples_test):
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
+def diaoyong():
+    gen = Generator()
+    gen.N_train = args.N_train
+    gen.N_test = args.N_test
+    gen.edge_density = args.edge_density
+    gen.p_SBM = args.p_SBM
+    gen.q_SBM = args.q_SBM
+    gen.random_noise = args.random_noise
+    gen.noise = args.noise
+    gen.noise_model = args.noise_model
+    gen.generative_model = args.generative_model
+    gen.n_classes = args.n_classes
 
+
+    torch.backends.cudnn.enabled=False
+
+    if (args.mode == 'test'):
+        print ('In testing mode')
+        filename = args.filename_existing_gnn
+        path_plus_name = os.path.join(args.path_gnn, filename)
+        if ((filename != '') and (os.path.exists(path_plus_name))):
+            print ('Loading gnn ' + filename)
+            gnn = torch.load(path_plus_name)
+            if torch.cuda.is_available():
+                gnn.cuda()
+        else:
+            print ('No such a gnn exists; creating a brand new one')
+            if (args.generative_model == 'SBM_multiclass'):
+                gnn = GNN_multiclass(args.num_features, args.num_layers, args.J + 2, n_classes=args.n_classes)
+            filename = 'gnn_J' + str(args.J) + '_lyr' + str(args.num_layers) + '_Ntr' + str(args.N_train) + '_num' + str(args.num_examples_train)
+            path_plus_name = os.path.join(args.path_gnn, filename)
+            if torch.cuda.is_available():
+                gnn.cuda()
+            print ('Training begins')
+
+
+    elif (args.mode == 'train'):
+        filename = args.filename_existing_gnn
+        path_plus_name = os.path.join(args.path_gnn, filename)
+        if ((filename != '') and (os.path.exists(path_plus_name))):
+            print ('Loading gnn ' + filename)
+            gnn = torch.load(path_plus_name)
+            filename = filename + '_Ntr' + str(args.N_train) + '_num' + str(args.num_examples_train)
+            path_plus_name = os.path.join(args.path_gnn, filename)
+        else:
+            print ('No such a gnn exists; creating a brand new one')
+            filename = 'gnn_J' + str(args.J) + '_lyr' + str(args.num_layers) + '_Ntr' + str(args.N_train) + '_num' + str(args.num_examples_train)
+            path_plus_name = os.path.join(args.path_gnn, filename)
+            if (args.generative_model == 'SBM_multiclass'):
+                gnn = GNN_multiclass(args.num_features, args.num_layers, args.J + 2, n_classes=args.n_classes)
+
+        print ('total num of params:', count_parameters(gnn))
+
+        if torch.cuda.is_available():
+            gnn.cuda()
+        print ('Training begins')
+        if (args.generative_model == 'SBM_multiclass'):
+            train(gnn, gen, args.n_classes)
+        print ('Saving gnn ' + filename)
+        if torch.cuda.is_available():
+            torch.save(gnn.cpu(), path_plus_name)
+            gnn.cuda()
+        else:
+            torch.save(gnn, path_plus_name)
+
+
+    print ('Testing the GNN:')
+    if args.eval_vs_train:
+        print ('model status: eval')
+        gnn.eval()
+    else:
+        print ('model status: train')
+        gnn.train()
+
+    test(gnn, gen, args.n_classes)
+
+    print ('total num of params:', count_parameters(gnn))
 
 if __name__ == '__main__':
   pass

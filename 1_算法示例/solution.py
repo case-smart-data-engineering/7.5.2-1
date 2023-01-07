@@ -24,25 +24,25 @@ parser = argparse.ArgumentParser()
 ###############################################################################
 
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
-                    default=int(6000))
+                    default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
-                    default=int(1000))
+                    default=1)
 parser.add_argument('--edge_density', nargs='?', const=1, type=float,
                     default=0.2)
 parser.add_argument('--p_SBM', nargs='?', const=1, type=float,
-                    default=0.8)
+                    default=0.0)
 parser.add_argument('--q_SBM', nargs='?', const=1, type=float,
-                    default=0.2)
+                    default=0.045)
 parser.add_argument('--random_noise', action='store_true')
 parser.add_argument('--noise', nargs='?', const=1, type=float, default=0.03)
 parser.add_argument('--noise_model', nargs='?', const=1, type=int, default=2)
 parser.add_argument('--generative_model', nargs='?', const=1, type=str,
-                    default='ErdosRenyi')
+                    default='SBM_multiclass')
 parser.add_argument('--batch_size', nargs='?', const=1, type=int, default=1)
 parser.add_argument('--mode', nargs='?', const=1, type=str, default='train')
 parser.add_argument('--path_gnn', nargs='?', const=1, type=str, default='')
 parser.add_argument('--filename_existing_gnn', nargs='?', const=1, type=str, default='')
-parser.add_argument('--print_freq', nargs='?', const=1, type=int, default=100)
+parser.add_argument('--print_freq', nargs='?', const=1, type=int, default=1)
 parser.add_argument('--test_freq', nargs='?', const=1, type=int, default=500)
 parser.add_argument('--save_freq', nargs='?', const=1, type=int, default=2000)
 parser.add_argument('--clip_grad_norm', nargs='?', const=1, type=float,
@@ -55,15 +55,15 @@ parser.set_defaults(eval_vs_train=False)
 ###############################################################################
 
 parser.add_argument('--num_features', nargs='?', const=1, type=int,
-                    default=20)
+                    default=10)
 parser.add_argument('--num_layers', nargs='?', const=1, type=int,
-                    default=20)
+                    default=1)
 parser.add_argument('--n_classes', nargs='?', const=1, type=int,
                     default=2)
-parser.add_argument('--J', nargs='?', const=1, type=int, default=4)
-parser.add_argument('--N_train', nargs='?', const=1, type=int, default=50)
-parser.add_argument('--N_test', nargs='?', const=1, type=int, default=50)
-parser.add_argument('--lr', nargs='?', const=1, type=float, default=1e-3)
+parser.add_argument('--J', nargs='?', const=1, type=int, default=2)
+parser.add_argument('--N_train', nargs='?', const=1, type=int, default=10)
+parser.add_argument('--N_test', nargs='?', const=1, type=int, default=10)
+parser.add_argument('--lr', nargs='?', const=1, type=float, default=0.004)
 
 args = parser.parse_args()
 
