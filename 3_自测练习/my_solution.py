@@ -128,18 +128,8 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     return loss_value, acc
 
 def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
-    gnn.train()
-    optimizer = torch.optim.Adamax(gnn.parameters(), lr=args.lr)
-    loss_lst = np.zeros([iters])
-    acc_lst = np.zeros([iters])
-    for it in range(iters):
-        loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, it)
-        loss_lst[it] = loss_single
-        acc_lst[it] = acc_single
-        torch.cuda.empty_cache()
-    print ('Avg train loss', np.mean(loss_lst))
-    print ('Avg train acc', np.mean(acc_lst))
-    print ('Std train acc', np.std(acc_lst))
+  raise NotImplementedError("补全代码块")
+
 
 def test_single(gnn, gen, n_classes, it):
 
