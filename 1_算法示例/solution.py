@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser()
 #                             General Settings                                #
 ###############################################################################
 
-
+#参数设置
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
                     default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
@@ -68,6 +68,7 @@ parser.add_argument('--lr', nargs='?', const=1, type=float, default=0.004)
 
 args = parser.parse_args()
 
+#判断cuda是否可以使用
 if torch.cuda.is_available():
     dtype = torch.cuda.FloatTensor
     dtype_l = torch.cuda.LongTensor
@@ -78,13 +79,17 @@ else:
     # torch.manual_seed(1)
 
 batch_size = args.batch_size
+#交叉熵损失函数
 criterion = nn.CrossEntropyLoss()
+#template将字符串的格式固定下来，重复利用。常用于自动生成测试用例
 template1 = '{:<10} {:<10} {:<10} {:<15} {:<10} {:<10} {:<10} '
 template2 = '{:<10} {:<10.5f} {:<10.5f} {:<15} {:<10} {:<10} {:<10.3f} \n'
 template3 = '{:<10} {:<10} {:<10} '
 template4 = '{:<10} {:<10.5f} {:<10.5f} \n'
 
+
 def train_single(gnn, optimizer, gen, n_classes, it):
+    
     start = time.time()
     W, labels = gen.sample_otf_single(is_training=True, cuda=torch.cuda.is_available())
     labels = labels.type(dtype_l)
@@ -115,6 +120,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     else:
         loss_value = float(loss.data.numpy())
 
+#编号，损失，输出，边缘密度，噪声，模型，运行时间
     info = ['iter', 'avg loss', 'avg acc', 'edge_density',
             'noise', 'model', 'elapsed']
     out = [it, loss_value, acc, args.edge_density,
@@ -127,16 +133,19 @@ def train_single(gnn, optimizer, gen, n_classes, it):
 
     return loss_value, acc
 
+#训练模型
 def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
     gnn.train()
+    #优化算法
     optimizer = torch.optim.Adamax(gnn.parameters(), lr=args.lr)
     loss_lst = np.zeros([iters])
     acc_lst = np.zeros([iters])
     for it in range(iters):
         loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, it)
-        loss_lst[it] = loss_single
-        acc_lst[it] = acc_single
+        loss_lst[it] = loss_single  #损失值列表
+        acc_lst[it] = acc_single    #输出值列表
         torch.cuda.empty_cache()
+    # mean：取均值  std：标准差计算
     print ('Avg train loss', np.mean(loss_lst))
     print ('Avg train acc', np.mean(acc_lst))
     print ('Std train acc', np.std(acc_lst))
@@ -150,7 +159,7 @@ def test_single(gnn, gen, n_classes, it):
         labels = (labels + 1)/2
     WW, x = get_gnn_inputs(W, args.J)
 
-    print ('WW', WW.shape)
+    print ('WW', WW.shape)    #读取矩阵的长度
 
     if (torch.cuda.is_available()):
         WW.cuda()
@@ -181,6 +190,8 @@ def test_single(gnn, gen, n_classes, it):
 
     return loss_value, acc_test
 
+
+#测试模型
 def test(gnn, gen, n_classes, iters=args.num_examples_test):
     gnn.train()
     loss_lst = np.zeros([iters])
@@ -194,6 +205,7 @@ def test(gnn, gen, n_classes, iters=args.num_examples_test):
     print ('Avg test acc', np.mean(acc_lst))
     print ('Std test acc', np.std(acc_lst))
 
+#统计模型参数总数
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 

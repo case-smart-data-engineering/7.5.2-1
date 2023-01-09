@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from load import get_Pm, get_Pd, get_W_lg
 import os
 
-
+#生成数据
 class Generator(object):
     def __init__(self, N_train=50, N_test=100, generative_model='SBM_multiclass', p_SBM=0.8, q_SBM=0.2, n_classes=2, path_dataset='', num_examples_train=100, num_examples_test=10):
         self.N_train = N_train
@@ -22,6 +22,7 @@ class Generator(object):
         self.num_examples_train = num_examples_train
         self.num_examples_test = num_examples_test
 
+#图生成模型
     def SBM(self, p, q, N):
         W = np.zeros((N, N))
 
@@ -45,6 +46,7 @@ class Generator(object):
         W_permed = W_permed[:, perm]
         return W_permed, labels
 
+#多类图生成模型
     def SBM_multiclass(self, p, q, N, n_classes):
         p_prime = 1 - np.sqrt(1 - p)
         q_prime = 1 - np.sqrt(1 - q)
@@ -69,7 +71,7 @@ class Generator(object):
         W_permed = W_permed[:, perm]
         return W_permed, labels
 
-
+#建立数据集
     def create_dataset(self, directory, is_training):
         if (self.generative_model == 'SBM_multiclass'):
             if not os.path.exists(directory):
@@ -102,7 +104,7 @@ class Generator(object):
         else:
             raise ValueError('Generative model {} not supported'.format(self.generative_model))
 
-
+#准备数据
     def prepare_data(self):
         train_directory = self.generative_model + '_nc' + str(self.n_classes) + '_p' + str(self.p_SBM) + '_q' + str(self.q_SBM) + '_gstr' + str(self.N_train) + '_numtr' + str(self.num_examples_train)
         
@@ -152,6 +154,7 @@ class Generator(object):
             raise ValueError('Generative model {} not supported'.format(self.generative_model))
 
         labels = np.expand_dims(labels, 0)
+        #把数组转换成张量，且二者共享内存
         labels = torch.from_numpy(labels)
         W = np.expand_dims(W, 0)
         return W, labels

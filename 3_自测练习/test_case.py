@@ -16,7 +16,7 @@ def test_solution():
     gen.generative_model ='SBM_multiclass'
     gen.n_classes = 2
     torch.backends.cudnn.enabled=False
-    gnn = GNN_multiclass(10, 1, 2 + 2, n_classes=2)
+    gnn = GNN_multiclass(10, 1, 4, n_classes=2)
     print ('Testing the GNN:')
-    test(gnn, gen, 2)
+    tes(gnn, gen, 2)
     print ('total num of params:', count_parameters(gnn))

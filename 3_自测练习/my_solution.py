@@ -8,7 +8,7 @@ from load import get_gnn_inputs
 from models import GNN_multiclass
 import time
 import argparse
-
+import pytest
 import torch
 import torch.nn as nn
 from torch.nn import init
@@ -67,7 +67,7 @@ parser.add_argument('--N_test', nargs='?', const=1, type=int, default=10)
 parser.add_argument('--lr', nargs='?', const=1, type=float, default=0.004)
 
 
-args = parser.parse_args()
+#args = parser.parse_args()
 
 if torch.cuda.is_available():
     dtype = torch.cuda.FloatTensor
@@ -78,7 +78,7 @@ else:
     dtype_l = torch.LongTensor
     # torch.manual_seed(1)
 
-batch_size = args.batch_size
+batch_size = 1
 criterion = nn.CrossEntropyLoss()
 template1 = '{:<10} {:<10} {:<10} {:<15} {:<10} {:<10} {:<10} '
 template2 = '{:<10} {:<10.5f} {:<10.5f} {:<15} {:<10} {:<10} {:<10.3f} \n'
@@ -89,11 +89,9 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     start = time.time()
     W, labels = gen.sample_otf_single(is_training=True, cuda=torch.cuda.is_available())
     labels = labels.type(dtype_l)
+    labels = (labels + 1)/2
 
-    if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
-        labels = (labels + 1)/2
-
-    WW, x = get_gnn_inputs(W, args.J)
+    WW, x = get_gnn_inputs(W, 2)
 
     if (torch.cuda.is_available()):
         WW.cuda()
@@ -104,7 +102,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     loss = compute_loss_multiclass(pred, labels, n_classes)
     gnn.zero_grad()
     loss.backward()
-    nn.utils.clip_grad_norm_(gnn.parameters(), args.clip_grad_norm)
+    nn.utils.clip_grad_norm_(gnn.parameters(), 40.0)
     optimizer.step()
 
     acc = compute_accuracy_multiclass(pred, labels, n_classes)
@@ -118,8 +116,8 @@ def train_single(gnn, optimizer, gen, n_classes, it):
 
     info = ['iter', 'avg loss', 'avg acc', 'edge_density',
             'noise', 'model', 'elapsed']
-    out = [it, loss_value, acc, args.edge_density,
-           args.noise, 'GNN', elapsed]
+    out = [it, loss_value, acc, 0.2,
+           0.03, 'GNN', elapsed]
     print(template1.format(*info))
     print(template2.format(*out))
 
@@ -128,56 +126,67 @@ def train_single(gnn, optimizer, gen, n_classes, it):
 
     return loss_value, acc
 
-def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
-  raise NotImplementedError("补全代码块")
+def train(gnn, gen, n_classes=2, iters=10):
+    gnn.train()
+    optimizer = torch.optim.Adamax(gnn.parameters(), lr=args.lr)
+    loss_lst = np.zeros([iters])
+    acc_lst = np.zeros([iters])
+    for it in range(iters):
+        loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, it)
+        loss_lst[it] = loss_single
+        acc_lst[it] = acc_single
+        torch.cuda.empty_cache()
+    print ('Avg train loss', np.mean(loss_lst))
+    print ('Avg train acc', np.mean(acc_lst))
+    print ('Std train acc', np.std(acc_lst))  
+  
 
 
-def test_single(gnn, gen, n_classes, it):
+def tes_single(gnn, gen, n_classes, it):
+   raise NotImplementedError("补全代码块")
+    # start = time.time()
+    # W, labels = gen.sample_otf_single(is_training=False, cuda=torch.cuda.is_available())
+    # labels = labels.type(dtype_l)
+    # labels = (labels + 1)/2
+    # WW, x = get_gnn_inputs(W, 2)
 
-    start = time.time()
-    W, labels = gen.sample_otf_single(is_training=False, cuda=torch.cuda.is_available())
-    labels = labels.type(dtype_l)
-    if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
-        labels = (labels + 1)/2
-    WW, x = get_gnn_inputs(W, args.J)
+    # print ('WW', WW.shape)
 
-    print ('WW', WW.shape)
+    # if (torch.cuda.is_available()):
+    #     WW.cuda()
+    #     x.cuda()
 
-    if (torch.cuda.is_available()):
-        WW.cuda()
-        x.cuda()
+    # pred_single = gnn(WW.type(dtype), x.type(dtype))
+    # labels_single = labels
 
-    pred_single = gnn(WW.type(dtype), x.type(dtype))
-    labels_single = labels
+    # loss_test = compute_loss_multiclass(pred_single, labels_single, n_classes)
+    # acc_test = compute_accuracy_multiclass(pred_single, labels_single, n_classes)
 
-    loss_test = compute_loss_multiclass(pred_single, labels_single, n_classes)
-    acc_test = compute_accuracy_multiclass(pred_single, labels_single, n_classes)
+    # elapsed = time.time() - start
 
-    elapsed = time.time() - start
+    # if(torch.cuda.is_available()):
+    #     loss_value = float(loss_test.data.cpu().numpy())
+    # else:
+    #     loss_value = float(loss_test.data.numpy())
 
-    if(torch.cuda.is_available()):
-        loss_value = float(loss_test.data.cpu().numpy())
-    else:
-        loss_value = float(loss_test.data.numpy())
+    # info = ['iter', 'avg loss', 'avg acc', 'edge_density',
+    #         'noise', 'model', 'elapsed']
+    # out = [it, loss_value, acc_test, 0.2,
+    #        0.03, 'GNN', elapsed]
+    # print(template1.format(*info))
+    # print(template2.format(*out))
 
-    info = ['iter', 'avg loss', 'avg acc', 'edge_density',
-            'noise', 'model', 'elapsed']
-    out = [it, loss_value, acc_test, args.edge_density,
-           args.noise, 'GNN', elapsed]
-    print(template1.format(*info))
-    print(template2.format(*out))
+    # del WW
+    # del x
 
-    del WW
-    del x
+    # return loss_value, acc_test
 
-    return loss_value, acc_test
-
-def test(gnn, gen, n_classes, iters=args.num_examples_test):
+def tes(gnn, gen, n_classes, iters=1):
     gnn.train()
     loss_lst = np.zeros([iters])
     acc_lst = np.zeros([iters])
     for it in range(iters):
-        loss_single, acc_single = test_single(gnn, gen, n_classes, it)
+        loss_single, acc_single = tes_single(gnn, gen, n_classes, it)
         loss_lst[it] = loss_single
         acc_lst[it] = acc_single
         torch.cuda.empty_cache()
