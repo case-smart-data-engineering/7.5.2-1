@@ -70,11 +70,11 @@ args = parser.parse_args()
 
 #判断cuda是否可以使用
 if torch.cuda.is_available():
-    dtype = torch.cuda.FloatTensor
+    dtype = torch.cuda.FloatTensor    #GPU的张量类型
     dtype_l = torch.cuda.LongTensor
     # torch.cuda.manual_seed(0)
 else:
-    dtype = torch.FloatTensor
+    dtype = torch.FloatTensor   #CPU上的数据类型
     dtype_l = torch.LongTensor
     # torch.manual_seed(1)
 
@@ -91,9 +91,11 @@ template4 = '{:<10} {:<10.5f} {:<10.5f} \n'
 def train_single(gnn, optimizer, gen, n_classes, it):
     #返回当前时间的时间戳
     start = time.time()
+    #将训练用例生成图模型
     W, labels = gen.sample_otf_single(is_training=True, cuda=torch.cuda.is_available())
+    #类型转换，使用dtype_l类型
     labels = labels.type(dtype_l)
-
+    #对标签进行折半处理
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
 
