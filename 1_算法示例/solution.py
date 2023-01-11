@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
                     default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
-                    default=1)
+                    default=10)
 parser.add_argument('--edge_density', nargs='?', const=1, type=float,
                     default=0.2)
 parser.add_argument('--p_SBM', nargs='?', const=1, type=float,
@@ -87,9 +87,9 @@ template2 = '{:<10} {:<10.5f} {:<10.5f} {:<15} {:<10} {:<10} {:<10.3f} \n'
 template3 = '{:<10} {:<10} {:<10} '
 template4 = '{:<10} {:<10.5f} {:<10.5f} \n'
 
-
+#训练单个用例
 def train_single(gnn, optimizer, gen, n_classes, it):
-    
+    #返回当前时间的时间戳
     start = time.time()
     W, labels = gen.sample_otf_single(is_training=True, cuda=torch.cuda.is_available())
     labels = labels.type(dtype_l)
@@ -141,7 +141,7 @@ def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
     loss_lst = np.zeros([iters])
     acc_lst = np.zeros([iters])
     for it in range(iters):
-        loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, it)
+        loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, it)#计算单个用例的损失和得出单个用例的输出
         loss_lst[it] = loss_single  #损失值列表
         acc_lst[it] = acc_single    #输出值列表
         torch.cuda.empty_cache()
@@ -150,6 +150,8 @@ def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
     print ('Avg train acc', np.mean(acc_lst))
     print ('Std train acc', np.std(acc_lst))
 
+
+#测试单个用例
 def test_single(gnn, gen, n_classes, it):
 
     start = time.time()
@@ -197,11 +199,12 @@ def test(gnn, gen, n_classes, iters=args.num_examples_test):
     loss_lst = np.zeros([iters])
     acc_lst = np.zeros([iters])
     for it in range(iters):
-        loss_single, acc_single = test_single(gnn, gen, n_classes, it)
-        loss_lst[it] = loss_single
-        acc_lst[it] = acc_single
+        loss_single, acc_single = test_single(gnn, gen, n_classes, it)  #计算单个用例的损失和得出单个用例的输出
+        loss_lst[it] = loss_single  #损失值列表
+        acc_lst[it] = acc_single    #输出值列表
         torch.cuda.empty_cache()
-    print ('Avg test loss', np.mean(loss_lst))
+    # mean：取均值  std：标准差计算
+    print ('Avg test loss', np.mean(loss_lst))   
     print ('Avg test acc', np.mean(acc_lst))
     print ('Std test acc', np.std(acc_lst))
 
