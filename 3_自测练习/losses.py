@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.nn import init
 import torch.nn.functional as F
 
+#交叉熵损失函数
 criterion = nn.CrossEntropyLoss()
 
 if torch.cuda.is_available():
@@ -18,14 +19,15 @@ else:
 
 
 def from_scores_to_labels_multiclass_batch(pred):
-    labels_pred = np.argmax(pred, axis = 2).astype(int)
+    labels_pred = np.argmax(pred, axis = 2).astype(int)  #返回元素最大值所对应的索引值
     return labels_pred
 
 def compute_accuracy_multiclass_batch(labels_pred, labels):
-    overlap = (labels_pred == labels).astype(int)
-    acc = np.mean(labels_pred == labels)
+    overlap = (labels_pred == labels).astype(int)  #类型转换为int型
+    acc = np.mean(labels_pred == labels) #求均值
     return acc
 
+#得出多类损失结果
 def compute_loss_multiclass(pred_llh, labels, n_classes):
     loss = 0
     permutations = permuteposs(n_classes)
@@ -46,6 +48,7 @@ def compute_loss_multiclass(pred_llh, labels, n_classes):
         loss += loss_single
     return loss
 
+#得到输出结果
 def compute_accuracy_multiclass(pred_llh, labels, n_classes):
     pred_llh = pred_llh.data.cpu().numpy()
     labels = labels.data.cpu().numpy()
@@ -71,6 +74,7 @@ def compute_accuracy_multiclass(pred_llh, labels, n_classes):
     acc = (acc - 1 / n_classes) / (1 - 1 / n_classes)
     return acc
 
+#维度变换
 def permuteposs(n_classes):
     permutor = Permutor(n_classes)
     permutations = permutor.return_permutations()
