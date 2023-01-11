@@ -95,10 +95,10 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     W, labels = gen.sample_otf_single(is_training=True, cuda=torch.cuda.is_available())
     #类型转换，使用dtype_l类型
     labels = labels.type(dtype_l)
-    #对标签进行折半处理
+    #对标签数据进行折半处理
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
-
+    #矩阵归一化处理
     WW, x = get_gnn_inputs(W, args.J)
 
     if (torch.cuda.is_available()):
@@ -106,23 +106,29 @@ def train_single(gnn, optimizer, gen, n_classes, it):
         x.cuda()
 
     pred = gnn(WW.type(dtype), x.type(dtype))
-
+    #得出多类损失结果
     loss = compute_loss_multiclass(pred, labels, n_classes)
-    gnn.zero_grad()
+    #使用backward函数前需要将梯度清零
+    gnn.zero_grad() 
+    #调用backward函数
     loss.backward()
+
+    #梯度裁剪，每次都需要与clip_grad_norm相乘  Parameter函数对某个张量进行参数化
     nn.utils.clip_grad_norm_(gnn.parameters(), args.clip_grad_norm)
+    #将optimizer的图形设计为水平基线，数据点通过垂直基线连接到该基线
     optimizer.step()
-
+    #得到多类输出结果
     acc = compute_accuracy_multiclass(pred, labels, n_classes)
-
+    #计算运行时长
     elapsed = time.time() - start
 
+    #将tensor转成numpy
     if(torch.cuda.is_available()):
         loss_value = float(loss.data.cpu().numpy())
     else:
         loss_value = float(loss.data.numpy())
 
-#编号，损失，输出，边缘密度，噪声，模型，运行时间
+    #编号，损失，输出，边缘密度，噪声，模型，运行时间
     info = ['iter', 'avg loss', 'avg acc', 'edge_density',
             'noise', 'model', 'elapsed']
     out = [it, loss_value, acc, args.edge_density,
@@ -155,12 +161,16 @@ def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
 
 #测试单个用例
 def test_single(gnn, gen, n_classes, it):
-
+    #返回当前时间的时间戳
     start = time.time()
+    #将测试用例生成图模型
     W, labels = gen.sample_otf_single(is_training=False, cuda=torch.cuda.is_available())
+    #类型转换，使用dtype_l类型
     labels = labels.type(dtype_l)
+    #对标签数据进行折半处理
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
+    #矩阵归一化处理
     WW, x = get_gnn_inputs(W, args.J)
 
     print ('WW', WW.shape)    #读取矩阵的长度
@@ -171,17 +181,19 @@ def test_single(gnn, gen, n_classes, it):
 
     pred_single = gnn(WW.type(dtype), x.type(dtype))
     labels_single = labels
-
+    #得出多类损失结果
     loss_test = compute_loss_multiclass(pred_single, labels_single, n_classes)
+    #得到多类输出结果
     acc_test = compute_accuracy_multiclass(pred_single, labels_single, n_classes)
-
+    #计算运行时长
     elapsed = time.time() - start
-
+    #将tensor转成numpy
     if(torch.cuda.is_available()):
         loss_value = float(loss_test.data.cpu().numpy())
     else:
         loss_value = float(loss_test.data.numpy())
-
+    
+    #编号，损失，输出，边缘密度，噪声，模型，运行时间
     info = ['iter', 'avg loss', 'avg acc', 'edge_density',
             'noise', 'model', 'elapsed']
     out = [it, loss_value, acc_test, args.edge_density,
@@ -232,7 +244,8 @@ if __name__ == '__main__':
 
 
     torch.backends.cudnn.enabled=False
-
+    
+    #测试模型
     if (args.mode == 'test'):
         print ('In testing mode')
         filename = args.filename_existing_gnn
@@ -252,7 +265,7 @@ if __name__ == '__main__':
                 gnn.cuda()
             print ('Training begins')
 
-
+    #训练模型
     elif (args.mode == 'train'):
         filename = args.filename_existing_gnn
         path_plus_name = os.path.join(args.path_gnn, filename)
@@ -290,9 +303,9 @@ if __name__ == '__main__':
     else:
         print ('model status: train')
         gnn.train()
-
+    #测试用例
     test(gnn, gen, args.n_classes)
-
+    #输出参数的总数
     print ('total num of params:', count_parameters(gnn))
 
 
