@@ -10,6 +10,7 @@ else:
     dtype = torch.FloatTensor
     dtype_l = torch.cuda.LongTensor
 
+#训练用例得到模型
 
 def GMul(W, x):
     # x is a tensor of size (bs, N, num_features)
