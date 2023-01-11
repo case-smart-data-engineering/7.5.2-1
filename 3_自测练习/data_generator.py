@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from load import get_Pm, get_Pd, get_W_lg
 import os
 
-
+#生成数据
 class Generator(object):
     def __init__(self, N_train=50, N_test=100, generative_model='SBM_multiclass', p_SBM=0.8, q_SBM=0.2, n_classes=2, path_dataset='', num_examples_train=100, num_examples_test=10):
         self.N_train = N_train
@@ -22,6 +22,7 @@ class Generator(object):
         self.num_examples_train = num_examples_train
         self.num_examples_test = num_examples_test
 
+#图生成模型
     def SBM(self, p, q, N):
         W = np.zeros((N, N))
 
@@ -45,6 +46,7 @@ class Generator(object):
         W_permed = W_permed[:, perm]
         return W_permed, labels
 
+#多类图生成模型
     def SBM_multiclass(self, p, q, N, n_classes):
         p_prime = 1 - np.sqrt(1 - p)
         q_prime = 1 - np.sqrt(1 - q)
@@ -69,7 +71,7 @@ class Generator(object):
         W_permed = W_permed[:, perm]
         return W_permed, labels
 
-
+#建立数据集
     def create_dataset(self, directory, is_training):
         if (self.generative_model == 'SBM_multiclass'):
             if not os.path.exists(directory):
@@ -102,7 +104,7 @@ class Generator(object):
         else:
             raise ValueError('Generative model {} not supported'.format(self.generative_model))
 
-
+#准备数据
     def prepare_data(self):
         train_directory = self.generative_model + '_nc' + str(self.n_classes) + '_p' + str(self.p_SBM) + '_q' + str(self.q_SBM) + '_gstr' + str(self.N_train) + '_numtr' + str(self.num_examples_train)
         
@@ -123,22 +125,22 @@ class Generator(object):
             print('Creating testing dataset.')
             self.create_dataset(test_path, is_training=False)
 
-
+#训练或测试单个用例
     def sample_single(self, i, is_training=True):
         if is_training:
-            dataset = self.data_train
+            dataset = self.data_train  #待训练数据
         else:
-            dataset = self.data_test
+            dataset = self.data_test   #待测试数据
         example = dataset[i]
         if (self.generative_model == 'SBM_multiclass'):
             W_np = example['W']
-            labels = np.expand_dims(example['labels'], 0)
-            labels_var = torch.from_numpy(labels)
+            labels = np.expand_dims(example['labels'], 0)  #添加维度
+            labels_var = torch.from_numpy(labels)  #数组转换成张量，且二者共享内存
             if is_training:
-                labels_var.requires_grad = True
+                labels_var.requires_grad = True  #让 backward 可以追踪这个参数并且计算它的梯度
             return W_np, labels_var 
 
-
+#将训练或者测试的用例生成图
     def sample_otf_single(self, is_training=True, cuda=True):
         if is_training:
             N = self.N_train
@@ -151,8 +153,8 @@ class Generator(object):
         else:
             raise ValueError('Generative model {} not supported'.format(self.generative_model))
 
-        labels = np.expand_dims(labels, 0)
-        labels = torch.from_numpy(labels)
-        W = np.expand_dims(W, 0)
+        labels = np.expand_dims(labels, 0)  #添加维度
+        labels = torch.from_numpy(labels)  #把数组转换成张量，且二者共享内存
+        W = np.expand_dims(W, 0)   
         return W, labels
 
