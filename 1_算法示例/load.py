@@ -6,19 +6,21 @@ from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
 
+#矩阵归一化
+
 
 def compute_operators(W, J):
-    N = W.shape[0]
-    d = W.sum(1)
-    D = np.diag(d)
-    QQ = W.copy()
-    WW = np.zeros([N, N, J + 2])
-    WW[:, :, 0] = np.eye(N)
+    N = W.shape[0] #读取矩阵的长度
+    d = W.sum(1)  #求数组每一行的和
+    D = np.diag(d) #输出矩阵的对角线元素
+    QQ = W.copy()  #拷贝W
+    WW = np.zeros([N, N, J + 2])  #建立0矩阵
+    WW[:, :, 0] = np.eye(N)  #生成对角阵
     for j in range(J):
         WW[:, :, j + 1] = QQ.copy()
-        QQ = np.minimum(np.dot(QQ, QQ), np.ones(QQ.shape))
+        QQ = np.minimum(np.dot(QQ, QQ), np.ones(QQ.shape))  
     WW[:, :, J + 1] = D
-    WW = np.reshape(WW, [N, N, J + 2])
+    WW = np.reshape(WW, [N, N, J + 2]) #矩阵规格变换，将矩阵转换为特定的行和列的矩阵
     x = np.reshape(d, [N, 1])
     return WW, x
 
@@ -88,7 +90,7 @@ def get_lg_inputs(W, J):
     W_lg = get_NB_2(W)
     WW_lg, y = compute_operators(W_lg, J)
     P = get_P(W)
-    x = x.astype(float)
+    x = x.astype(float) #类型转换
     y = y.astype(float)
     WW = WW.astype(float)
     WW_lg = WW_lg.astype(float)
@@ -100,10 +102,11 @@ def get_lg_inputs(W, J):
     P = torch.tensor(P, requires_grad=True).unsqueeze(0)
     return WW, x, WW_lg, y, P
 
+
 def get_gnn_inputs(W, J):
     W = W[0, :, :]
     WW, x = compute_operators(W, J)
-    WW = WW.astype(float)
+    WW = WW.astype(float)  #类型转换
     WW = torch.tensor(WW, requires_grad=True).unsqueeze(0)
     x = torch.tensor(x, requires_grad=True).unsqueeze(0)
     return WW, x
