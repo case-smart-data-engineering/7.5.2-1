@@ -98,7 +98,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     labels = labels.type(dtype_l)
     #对标签数据进行折半处理
     labels = (labels + 1)/2
-    #矩阵归一化处理
+    ##得到模型输入后结果
     WW, x = get_gnn_inputs(W, args.J)
 
     if (torch.cuda.is_available()):
@@ -135,7 +135,10 @@ def train_single(gnn, optimizer, gen, n_classes, it):
            args.noise, 'GNN', elapsed]
     print(template1.format(*info))
     print(template2.format(*out))
-
+    x=x.type(dtype)
+    x=x.data.numpy()
+    print(x)
+    print()
     del WW
     del x
 

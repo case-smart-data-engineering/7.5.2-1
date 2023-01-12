@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
                     default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
-                    default=10)
+                    default=5)
 parser.add_argument('--edge_density', nargs='?', const=1, type=float,
                     default=0.2)
 parser.add_argument('--p_SBM', nargs='?', const=1, type=float,
@@ -170,16 +170,16 @@ def test_single(gnn, gen, n_classes, it):
     #对标签数据进行折半处理
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
-    #矩阵归一化处理
+    #得到模型输入后结果
     WW, x = get_gnn_inputs(W, args.J)
-
-    print ('WW', WW.shape)    #读取矩阵的长度
+    #print(x)
+#    print ('WW', WW.shape)    #读取矩阵的长度
 
     if (torch.cuda.is_available()):
         WW.cuda()
         x.cuda()
 
-    pred_single = gnn(WW.type(dtype), x.type(dtype))
+    pred_single = gnn(WW.type(dtype), x.type(dtype))   
     labels_single = labels
     #得出多类损失结果
     loss_test = compute_loss_multiclass(pred_single, labels_single, n_classes)
@@ -200,7 +200,10 @@ def test_single(gnn, gen, n_classes, it):
            args.noise, 'GNN', elapsed]
     print(template1.format(*info))
     print(template2.format(*out))
-
+    x=x.type(dtype)
+    x=x.data.numpy()
+    print(x)
+    print()
     del WW
     del x
 
@@ -244,7 +247,6 @@ if __name__ == '__main__':
 
 
     torch.backends.cudnn.enabled=False
-    
     #测试模型
     if (args.mode == 'test'):
         print ('In testing mode')
