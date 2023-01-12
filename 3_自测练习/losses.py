@@ -23,8 +23,8 @@ def from_scores_to_labels_multiclass_batch(pred):
     return labels_pred
 
 def compute_accuracy_multiclass_batch(labels_pred, labels):
-    overlap = (labels_pred == labels).astype(int)  #类型转换为int型
-    acc = np.mean(labels_pred == labels) #求均值
+    overlap = (labels_pred == labels).astype(int)  #转化为整型数据，大于或等于1转换为1，0还是0
+    acc = np.mean(labels_pred == labels) #x==y表示两个数组中的值相同时，输出True；否则输出False，True的值除以总数
     return acc
 
 #得出多类损失结果
@@ -70,7 +70,7 @@ def compute_accuracy_multiclass(pred_llh, labels, n_classes):
                 acc_single = np.max([acc_single, acc_under_perm])
 
         acc += acc_single
-    acc = acc / labels.shape[0]
+    acc = acc / labels.shape[0]  #shape[0]输出矩阵的行数
     acc = (acc - 1 / n_classes) / (1 - 1 / n_classes)
     return acc
 

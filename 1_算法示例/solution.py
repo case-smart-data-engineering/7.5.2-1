@@ -98,6 +98,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     #对标签数据进行折半处理
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
+    
     #矩阵归一化处理
     WW, x = get_gnn_inputs(W, args.J)
 
@@ -118,6 +119,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     #将optimizer的图形设计为水平基线，数据点通过垂直基线连接到该基线
     optimizer.step()
     #得到多类输出结果
+
     acc = compute_accuracy_multiclass(pred, labels, n_classes)
     #计算运行时长
     elapsed = time.time() - start
@@ -200,10 +202,10 @@ def test_single(gnn, gen, n_classes, it):
            args.noise, 'GNN', elapsed]
     print(template1.format(*info))
     print(template2.format(*out))
-    x=x.type(dtype)
-    x=x.data.numpy()
-    print(x)
-    print()
+    # x=x.type(dtype)
+    # x=x.data.numpy()
+    # print(x)
+    # print()
     del WW
     del x
 
