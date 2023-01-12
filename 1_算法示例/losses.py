@@ -24,6 +24,7 @@ def from_scores_to_labels_multiclass_batch(pred):
 
 def compute_accuracy_multiclass_batch(labels_pred, labels):
     overlap = (labels_pred == labels).astype(int)  #转化为整型数据，大于或等于1转换为1，0还是0
+    print(overlap)
     acc = np.mean(labels_pred == labels) #x==y表示两个数组中的值相同时，输出True；否则输出False，True的值除以总数
     return acc
 
@@ -62,7 +63,6 @@ def compute_accuracy_multiclass(pred_llh, labels, n_classes):
         for j in range(permutations.shape[0]):
             permutation = permutations[j, :]
             labels_under_perm = permutations[j, labels_single.astype(int)]
-
             acc_under_perm = compute_accuracy_multiclass_batch(pred_labels_single, labels_under_perm)
             if (j == 0):
                 acc_single = acc_under_perm

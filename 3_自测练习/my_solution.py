@@ -135,10 +135,6 @@ def train_single(gnn, optimizer, gen, n_classes, it):
            args.noise, 'GNN', elapsed]
     print(template1.format(*info))
     print(template2.format(*out))
-    x=x.type(dtype)
-    x=x.data.numpy()
-    print(x)
-    print()
     del WW
     del x
 
