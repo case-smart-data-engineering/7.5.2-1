@@ -174,7 +174,7 @@ def test_single(gnn, gen, n_classes, it):
         labels = (labels + 1)/2
     #得到模型输入后结果
     WW, x = get_gnn_inputs(W, args.J)
-    #print(x)
+
 #    print ('WW', WW.shape)    #读取矩阵的长度
 
     if (torch.cuda.is_available()):
@@ -186,7 +186,7 @@ def test_single(gnn, gen, n_classes, it):
     #得出多类损失结果
     loss_test = compute_loss_multiclass(pred_single, labels_single, n_classes)
     #得到多类输出结果
-    acc_test = compute_accuracy_multiclass(pred_single, labels_single, n_classes)
+    acc_test= compute_accuracy_multiclass(pred_single, labels_single, n_classes)
     #计算运行时长
     elapsed = time.time() - start
     #将tensor转成numpy
@@ -202,10 +202,6 @@ def test_single(gnn, gen, n_classes, it):
            args.noise, 'GNN', elapsed]
     print(template1.format(*info))
     print(template2.format(*out))
-    # x=x.type(dtype)
-    # x=x.data.numpy()
-    # print(x)
-    # print()
     del WW
     del x
 
