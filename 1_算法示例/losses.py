@@ -70,10 +70,8 @@ def compute_accuracy_multiclass(pred_llh, labels, n_classes):
                 acc_single = np.max([acc_single, acc_under_perm])
 
         acc += acc_single
-        print(acc)
     acc = acc / labels.shape[0]  #shape[0]输出矩阵的行数
     acc = (acc - 1 / n_classes) / (1 - 1 / n_classes)
-    print(acc)
     return acc
 
 #维度变换
