@@ -99,7 +99,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
     
-    #矩阵归一化处理
+    #得到模型输入后结果
     WW, x = get_gnn_inputs(W, args.J)
 
     if (torch.cuda.is_available()):
