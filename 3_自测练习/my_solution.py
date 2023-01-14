@@ -169,7 +169,7 @@ def tes_single(gnn, gen, n_classes, it):
 
     #对标签数据进行折半处理
 
-    #矩阵归一化处理
+    #得到模型输入后结果
 
     #读取矩阵的长度  
 
