@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--num_examples_train', nargs='?', const=1, type=int,
                     default=10)
 parser.add_argument('--num_examples_test', nargs='?', const=1, type=int,
-                    default=5)
+                    default=1)
 parser.add_argument('--edge_density', nargs='?', const=1, type=float,
                     default=0.2)
 parser.add_argument('--p_SBM', nargs='?', const=1, type=float,
