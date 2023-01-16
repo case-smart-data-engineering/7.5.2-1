@@ -161,15 +161,14 @@ def tes_single(gnn, gen, n_classes, it):
     raise NotImplementedError("补全代码块")
     #返回当前时间的时间戳
 
-    #将测试用例生成图模型
+    #将图中结点以矩阵的形式表现
 
     #类型转换，使用dtype_l类型
 
     #对标签数据进行折半处理
 
-    #得到模型输入后结果
-
-    #读取矩阵的长度  
+    #得到矩阵归一化结果
+ 
 
     if (torch.cuda.is_available()):
         WW.cuda()
@@ -179,7 +178,7 @@ def tes_single(gnn, gen, n_classes, it):
     #得出多类损失结果
 
     #得到多类输出结果
-
+    
     # #计算运行时长
 
     #将tensor转成numpy
