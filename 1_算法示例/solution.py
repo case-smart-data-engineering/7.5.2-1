@@ -248,31 +248,13 @@ if __name__ == '__main__':
     #测试模型
     if (args.mode == 'test'):
         print ('In testing mode')
-        filename = args.filename_existing_gnn
+        filename = 'gnn_J2_lyr1_Ntr10_num10'
         path_plus_name = os.path.join(args.path_gnn, filename)
-        if ((filename != '') and (os.path.exists(path_plus_name))):
-            print ('Loading gnn ' + filename)
-            gnn = torch.load(path_plus_name)
-            if torch.cuda.is_available():
-                gnn.cuda()
-        else:
-            print ('No such a gnn exists; creating a brand new one')
-            if (args.generative_model == 'SBM_multiclass'):
-                gnn = GNN_multiclass(args.num_features, args.num_layers, args.J + 2, n_classes=args.n_classes)
-            filename = 'gnn_J' + str(args.J) + '_lyr' + str(args.num_layers) + '_Ntr' + str(args.N_train) + '_num' + str(args.num_examples_train)
-            path_plus_name = os.path.join(args.path_gnn, filename)
-            if torch.cuda.is_available():
-                gnn.cuda()
-            print ('Training begins')
-            if (args.generative_model == 'SBM_multiclass'):
-                train(gnn, gen, args.n_classes)
-            print ('Saving gnn ' + filename)
-            #将训练好的模型存入gnn_J2_lyr1_Ntr10_num10文件中
-            if torch.cuda.is_available():
-                torch.save(gnn.cpu(), path_plus_name)
-                gnn.cuda()
-            else:
-                torch.save(gnn, path_plus_name)
+        print ('Loading gnn ' + filename)
+        gnn = torch.load(path_plus_name)
+        if torch.cuda.is_available():
+            gnn.cuda()
+
 
     #训练模型
     elif (args.mode == 'train'):
