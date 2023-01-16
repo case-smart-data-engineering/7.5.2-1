@@ -83,10 +83,10 @@ else:
 
 batch_size = 1
 criterion = nn.CrossEntropyLoss()
-template1 = '{:<10} {:<10} {:<10} {:<15} {:<10} {:<10} {:<10} '
-template2 = '{:<10} {:<10.5f} {:<10.5f} {:<15} {:<10} {:<10} {:<10.3f} \n'
-template3 = '{:<10} {:<10} {:<10} '
-template4 = '{:<10} {:<10.5f} {:<10.5f} \n'
+template1 = '{:<10} {:<10}'
+template2 = '{:<10} {:<10.5f} \n'
+template3 = '{:<10}'
+template4 = '{:<10.5f}  \n'
 
 #训练单个用例
 def train_single(gnn, optimizer, gen, n_classes, it):
@@ -128,11 +128,9 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     else:
         loss_value = float(loss.data.numpy())
 
-    #编号，损失，输出，边缘密度，噪声，模型，运行时间
-    info = ['iter', 'avg loss', 'avg acc', 'edge_density',
-            'noise', 'model', 'elapsed']
-    out = [it, loss_value, acc, args.edge_density,
-           args.noise, 'GNN', elapsed]
+    #编号，损失
+    info = ['graph', 'avg loss']
+    out = [it, loss_value]  
     print(template1.format(*info))
     print(template2.format(*out))
     del WW
@@ -190,13 +188,11 @@ def tes_single(gnn, gen, n_classes, it):
     else:
         loss_value = float(loss_test.data.numpy())
     
-    #编号，损失，输出，边缘密度，噪声，模型，运行时间
-    info = ['iter', 'avg loss', 'avg acc', 'edge_density',
-            'noise', 'model', 'elapsed']
-    out = [it, loss_value, acc_test, args.edge_density,
-           args.noise, 'GNN', elapsed]
-    print(template1.format(*info))
-    print(template2.format(*out))
+    #损失
+    info = [ 'avg loss']
+    out = [loss_value]  
+    print(template3.format(*info))
+    print(template4.format(*out))
 
     del WW
     del x
