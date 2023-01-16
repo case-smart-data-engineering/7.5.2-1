@@ -92,7 +92,7 @@ template4 = '{:<10.5f}  \n'
 def train_single(gnn, optimizer, gen, n_classes, it):
     #返回当前时间的时间戳
     start = time.time()
-    #将训练用例生成图模型
+    #将图中结点以矩阵的形式表现
     W, labels = gen.sample_otf_single(is_training=True, cuda=torch.cuda.is_available())
     #类型转换，使用dtype_l类型
     labels = labels.type(dtype_l)
@@ -100,7 +100,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
     
-    #得到模型输入后结果
+    #得到矩阵归一化结果
     WW, x = get_gnn_inputs(W, args.J)
 
     if (torch.cuda.is_available()):
@@ -144,6 +144,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
 
 #训练模型
 def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
+    #训练模型
     gnn.train()
     #优化算法
     optimizer = torch.optim.Adamax(gnn.parameters(), lr=args.lr)
@@ -162,14 +163,15 @@ def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
 def test_single(gnn, gen, n_classes, it):
     #返回当前时间的时间戳
     start = time.time()
-    #将测试用例生成图模型
+    #将图中结点以矩阵的形式表现
     W, labels = gen.sample_otf_single(is_training=False, cuda=torch.cuda.is_available())
+
     #类型转换，使用dtype_l类型
     labels = labels.type(dtype_l)
     #对标签数据进行折半处理
     if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
         labels = (labels + 1)/2
-    #得到模型输入后结果
+    #得到矩阵归一化结果
     WW, x = get_gnn_inputs(W, args.J)
 
 #    print ('WW', WW.shape)    #读取矩阵的长度
@@ -262,6 +264,15 @@ if __name__ == '__main__':
             if torch.cuda.is_available():
                 gnn.cuda()
             print ('Training begins')
+            if (args.generative_model == 'SBM_multiclass'):
+                train(gnn, gen, args.n_classes)
+            print ('Saving gnn ' + filename)
+            #将训练好的模型存入gnn_J2_lyr1_Ntr10_num10文件中
+            if torch.cuda.is_available():
+                torch.save(gnn.cpu(), path_plus_name)
+                gnn.cuda()
+            else:
+                torch.save(gnn, path_plus_name)
 
     #训练模型
     elif (args.mode == 'train'):
