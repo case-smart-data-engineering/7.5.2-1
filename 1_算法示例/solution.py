@@ -218,6 +218,7 @@ def test(gnn, gen, n_classes, iters=args.num_examples_test):
 
 
 #统计模型参数总数
+#model.parameters()是取得模型的参数，if p.requires_grad 是可求导参数的情况下，固定取参函数
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
@@ -225,7 +226,9 @@ def count_parameters(model):
 
 if __name__ == '__main__':
 
+    #调用data_generator文件中的类Generator，生成数据
     gen = Generator()
+    #控制每张图中结点个数
     gen.N_train = args.N_train
     gen.N_test = args.N_test
     gen.edge_density = args.edge_density
@@ -237,8 +240,9 @@ if __name__ == '__main__':
     gen.generative_model = args.generative_model
     gen.n_classes = args.n_classes
 
-
+    #cuDNN不使用非确定性算法
     torch.backends.cudnn.enabled=False
+
     #测试模型
     if (args.mode == 'test'):
         print ('In testing mode')
@@ -261,28 +265,34 @@ if __name__ == '__main__':
 
     #训练模型
     elif (args.mode == 'train'):
+        #记录建立的模型保存在那个文件中
         filename = args.filename_existing_gnn
         path_plus_name = os.path.join(args.path_gnn, filename)
         if ((filename != '') and (os.path.exists(path_plus_name))):
             print ('Loading gnn ' + filename)
+            #如果存在已经训练好的模型，则加载模型
             gnn = torch.load(path_plus_name)
             filename = filename + '_Ntr' + str(args.N_train) + '_num' + str(args.num_examples_train)
             path_plus_name = os.path.join(args.path_gnn, filename)
         else:
             print ('No such a gnn exists; creating a brand new one')
+            #lyr是多少卷积层，Ntr是每张图中有几个结点，num是训练几张图
             filename = 'gnn_J' + str(args.J) + '_lyr' + str(args.num_layers) + '_Ntr' + str(args.N_train) + '_num' + str(args.num_examples_train)
             path_plus_name = os.path.join(args.path_gnn, filename)
             if (args.generative_model == 'SBM_multiclass'):
+                #生成初始模型
                 gnn = GNN_multiclass(args.num_features, args.num_layers, args.J + 2, n_classes=args.n_classes)
 
         print ('total num of params:', count_parameters(gnn))
 
         if torch.cuda.is_available():
+            #将模型加载到GPU上去
             gnn.cuda()
         print ('Training begins')
         if (args.generative_model == 'SBM_multiclass'):
             train(gnn, gen, args.n_classes)
         print ('Saving gnn ' + filename)
+        #将训练好的模型存入gnn_J2_lyr1_Ntr10_num10文件中
         if torch.cuda.is_available():
             torch.save(gnn.cpu(), path_plus_name)
             gnn.cuda()
@@ -291,15 +301,21 @@ if __name__ == '__main__':
 
 
     print ('Testing the GNN:')
+    #.train()的作用是启用 Batch Normalization 和 Dropout
+    #.eval()的作用是不启用 Batch Normalization 和 Dropout
     if args.eval_vs_train:
+        #.eval()是保证BN层能够用全部训练数据的均值和方差
+        #对于Dropout，.eval()是利用到了所有网络连接
         print ('model status: eval')
         gnn.eval()
     else:
+        #.train()是保证BN层能够用到每一批数据的均值和方差
+        #对于Dropout，.train()随机取一部分网络连接来训练更新参数
         print ('model status: train')
         gnn.train()
     #测试用例
     test(gnn, gen, args.n_classes)
-    #输出参数的总数
+    #输出参数的总数，含有共享参数
     print ('total num of params:', count_parameters(gnn))
 
 
