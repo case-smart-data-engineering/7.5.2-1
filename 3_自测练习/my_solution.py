@@ -152,8 +152,6 @@ def train(gnn, gen, n_classes=2, iters=10):
         torch.cuda.empty_cache()
     # mean：取均值  std：标准差计算
     print ('Avg train loss', np.mean(loss_lst))
-    print ('Avg train acc', np.mean(acc_lst))
-    print ('Std train acc', np.std(acc_lst))
 
   
 #测试单个用例
@@ -211,8 +209,6 @@ def tes(gnn, gen, n_classes, iters=10):
         torch.cuda.empty_cache()
     # mean：取均值  std：标准差计算
     print ('Avg test loss', np.mean(loss_lst))   
-    print ('Avg test acc', np.mean(acc_lst))
-    print ('Std test acc', np.std(acc_lst))
 
 
 #统计模型参数总数
