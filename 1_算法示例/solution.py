@@ -89,7 +89,7 @@ template4 = '{:<10.5f}  \n'
 
 
 #训练单个用例
-def train_single(gnn, optimizer, gen, n_classes, it):
+def train_single(gnn, optimizer, gen, n_classes, graph):
     #返回当前时间的时间戳
     start = time.time()
     #将图中结点以矩阵的形式表现
@@ -133,7 +133,7 @@ def train_single(gnn, optimizer, gen, n_classes, it):
 
     #编号，损失
     info = ['graph', 'avg loss']
-    out = [it, loss_value]  
+    out = [graph, loss_value]  
     print(template1.format(*info))
     print(template2.format(*out))
 
@@ -150,17 +150,17 @@ def train(gnn, gen, n_classes=args.n_classes, iters=args.num_examples_train):
     optimizer = torch.optim.Adamax(gnn.parameters(), lr=args.lr)
     loss_lst = np.zeros([iters])
     acc_lst = np.zeros([iters])
-    for it in range(iters):
-        loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, it)#计算单个用例的损失和得出单个用例的输出
-        loss_lst[it] = loss_single  #损失值列表
-        acc_lst[it] = acc_single    #输出值列表
+    for graph in range(iters):
+        loss_single, acc_single = train_single(gnn, optimizer, gen, n_classes, graph)#计算单个用例的损失和得出单个用例的输出
+        loss_lst[graph] = loss_single  #损失值列表
+        acc_lst[graph] = acc_single    #输出值列表
         torch.cuda.empty_cache()
     # mean：取均值  std：标准差计算
     print ('Avg train loss', np.mean(loss_lst))
 
 
 #测试单个用例
-def test_single(gnn, gen, n_classes, it):
+def test_single(gnn, gen, n_classes, graph):
     #返回当前时间的时间戳
     start = time.time()
     #将图中结点以矩阵的形式表现
@@ -169,10 +169,9 @@ def test_single(gnn, gen, n_classes, it):
     #类型转换，使用dtype_l类型
     labels = labels.type(dtype_l)
     #对标签数据进行折半处理
-    if (args.generative_model == 'SBM_multiclass') and (args.n_classes == 2):
-        labels = (labels + 1)/2
+    labels = (labels + 1)/2
     #得到矩阵归一化结果
-    WW, x = get_gnn_inputs(W, args.J)
+    WW, x = get_gnn_inputs(W, 2)
 
 #    print ('WW', WW.shape)    #读取矩阵的长度
 
@@ -210,10 +209,10 @@ def test(gnn, gen, n_classes, iters=args.num_examples_test):
     gnn.train()
     loss_lst = np.zeros([iters])
     acc_lst = np.zeros([iters])
-    for it in range(iters):
-        loss_single, acc_single = test_single(gnn, gen, n_classes, it)  #计算单个用例的损失和得出单个用例的输出
-        loss_lst[it] = loss_single  #损失值列表
-        acc_lst[it] = acc_single    #输出值列表
+    for graph in range(iters):
+        loss_single, acc_single = test_single(gnn, gen, n_classes, graph)  #计算单个用例的损失和得出单个用例的输出
+        loss_lst[graph] = loss_single  #损失值列表
+        acc_lst[graph] = acc_single    #输出值列表
         torch.cuda.empty_cache()
     # mean：取均值  std：标准差计算
     print ('Avg test loss', np.mean(loss_lst))   
