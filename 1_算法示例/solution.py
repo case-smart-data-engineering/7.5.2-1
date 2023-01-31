@@ -41,7 +41,7 @@ parser.add_argument('--generative_model', nargs='?', const=1, type=str,
                     default='SBM_multiclass')
 parser.add_argument('--batch_size', nargs='?', const=1, type=int, default=1)
 parser.add_argument('--mode', nargs='?', const=1, type=str, default='train')
-parser.add_argument('--path_gnn', nargs='?', const=1, type=str, default='')
+parser.add_argument('--path_gnn', nargs='?', const=1, type=str, default='/workspace/7.5.2-1/1_算法示例')
 parser.add_argument('--filename_existing_gnn', nargs='?', const=1, type=str, default='')
 parser.add_argument('--print_freq', nargs='?', const=1, type=int, default=1)
 parser.add_argument('--test_freq', nargs='?', const=1, type=int, default=500)
